@@ -97,11 +97,7 @@ jobs:
 
             aws lambda update-function-configuration \
               --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
-              --environment Variables="{
-                \"DATABASE_URL\":\"$DATABASE_URL\",
-                \"JWT_SECRET\":\"${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}\",
-                \"NODE_ENV\":\"${{ github.event.inputs.environment || 'production' }}\"
-              }" \
+              --environment 'Variables={"DATABASE_URL":"'$DATABASE_URL'","JWT_SECRET":"${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}","NODE_ENV":"${{ github.event.inputs.environment || 'production' }}"}' \
               --region ${{ env.AWS_REGION }}
           fi
 
