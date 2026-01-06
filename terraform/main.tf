@@ -190,10 +190,10 @@ resource "aws_api_gateway_method_response" "auth_post_response" {
   http_method = aws_api_gateway_method.auth_post.http_method
   status_code = "200"
 
-  response_headers = {
-    "Access-Control-Allow-Origin"  = true
-    "Access-Control-Allow-Headers" = true
-    "Access-Control-Allow-Methods" = true
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
   }
 
   response_models = {
@@ -208,10 +208,10 @@ resource "aws_api_gateway_integration_response" "auth_lambda_integration_respons
   http_method = aws_api_gateway_method.auth_post.http_method
   status_code = aws_api_gateway_method_response.auth_post_response.status_code
 
-  response_headers = {
-    "Access-Control-Allow-Origin"  = "'*'"
-    "Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-    "Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
   }
 
   depends_on = [aws_api_gateway_integration.auth_lambda_integration]
@@ -242,10 +242,10 @@ resource "aws_api_gateway_method_response" "auth_options_response" {
   http_method = aws_api_gateway_method.auth_options.http_method
   status_code = "200"
 
-  response_headers = {
-    "Access-Control-Allow-Origin"  = true
-    "Access-Control-Allow-Headers" = true
-    "Access-Control-Allow-Methods" = true
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
   }
 }
 
@@ -255,10 +255,10 @@ resource "aws_api_gateway_integration_response" "auth_options_integration_respon
   http_method = aws_api_gateway_method.auth_options.http_method
   status_code = "200"
 
-  response_headers = {
-    "Access-Control-Allow-Origin"  = "'*'"
-    "Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-    "Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
   }
 
   depends_on = [aws_api_gateway_integration.auth_options_integration]
