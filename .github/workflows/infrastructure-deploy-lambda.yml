@@ -92,11 +92,18 @@ jobs:
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
             --zip-file fileb://lambda-deployment.zip \
             --region ${{ env.AWS_REGION }}
+          
+          echo "⏳ Aguardando função Lambda ficar disponível..."
+          aws lambda wait function-updated \
+            --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+            --region ${{ env.AWS_REGION }}
+          
+          echo "✅ Função Lambda atualizada e pronta!"
 
       - name: Update environment variables
         run: |
           DB_HOST="${{ steps.terraform_outputs.outputs.database_endpoint }}"
-          DATABASE_URL="mysql://admin:admin123@${DB_HOST}:3306/fastfood?allowPublicKeyRetrieval=true"
+          DATABASE_URL="mysql://admin:admin123@${DB_HOST}/fastfood?allowPublicKeyRetrieval=true"
           
           aws lambda update-function-configuration \
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
