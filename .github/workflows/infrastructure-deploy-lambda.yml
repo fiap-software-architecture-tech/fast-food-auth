@@ -95,10 +95,24 @@ jobs:
           if [ -n "$RDS_ENDPOINT" ]; then
             DATABASE_URL="mysql://admin:admin123@${RDS_ENDPOINT}:3306/fastfood?allowPublicKeyRetrieval=true"
 
+            # Criar arquivo JSON temporário para evitar problemas com aspas
+            cat > env_vars.json << EOF
+            {
+              "Variables": {
+                "DATABASE_URL": "$DATABASE_URL",
+                "JWT_SECRET": "${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}",
+                "NODE_ENV": "${{ github.event.inputs.environment || 'production' }}"
+              }
+            }
+            EOF
+            
+            # Atualizar a função Lambda usando o arquivo JSON
             aws lambda update-function-configuration \
               --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
-              --environment 'Variables={"DATABASE_URL":"'$DATABASE_URL'","JWT_SECRET":"${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}","NODE_ENV":"${{ github.event.inputs.environment || 'production' }}"}' \
+              --environment file://env_vars.json \
               --region ${{ env.AWS_REGION }}
+
+            echo "✅ Variáveis de ambiente configuradas!"
           fi
 
       - name: Validate deployment
