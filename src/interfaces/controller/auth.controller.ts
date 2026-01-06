@@ -2,17 +2,21 @@ import { inject, injectable } from 'inversify';
 
 import { AuthDto } from '#/application/use-cases/auth/auth.dto';
 import { IAuthUseCase } from '#/application/use-cases/auth/auth.use-case';
+import { ILogger } from '#/domain/services/logger.service';
 import { TYPES } from '#/infrastructure/config/di/types';
-import { IAuthController } from '#/interfaces/controller/interfaces/auth';
 import { AuthResponseDTO } from '#/interfaces/presenter/auth/auth-response.dto';
 import { AuthPresenter } from '#/interfaces/presenter/auth/auth.presenter';
 
 @injectable()
-export class AuthController implements IAuthController {
-    constructor(@inject(TYPES.AuthUseCase) private readonly authUseCase: IAuthUseCase) {}
+export class AuthController {
+    constructor(
+        @inject(TYPES.Logger) private readonly logger: ILogger,
+        @inject(TYPES.AuthUseCase) private readonly authUseCase: IAuthUseCase,
+    ) {}
 
-    async getToken(request: AuthDto): Promise<AuthResponseDTO> {
-        const response = await this.authUseCase.execute(request);
+    getToken(request: AuthDto): AuthResponseDTO {
+        this.logger.info('Generating auth token for user', { cpf: request.cpf });
+        const response = this.authUseCase.execute(request);
         return AuthPresenter.toDTO(response);
     }
 }
