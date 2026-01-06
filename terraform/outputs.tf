@@ -26,12 +26,12 @@ output "lambda_function_version" {
 # IAM Outputs
 output "lambda_role_arn" {
   description = "ARN da role IAM da Lambda"
-  value       = aws_iam_role.lambda_auth_role.arn
+  value       = data.aws_iam_role.lab_role.arn
 }
 
 output "lambda_role_name" {
   description = "Nome da role IAM da Lambda"
-  value       = aws_iam_role.lambda_auth_role.name
+  value       = data.aws_iam_role.lab_role.name
 }
 
 # API Gateway Outputs

@@ -25,64 +25,12 @@ data "aws_subnet" "fastfood_subnet_1b" {
 }
 
 # ===========================
-# IAM ROLE FOR LAMBDA
+# IAM ROLE FOR LAMBDA (Using existing LabRole)
 # ===========================
 
-resource "aws_iam_role" "lambda_auth_role" {
-  name = "fast-food-lambda-auth-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "terraform"
-    Component   = "serverless"
-    Project     = "fast-food"
-  }
-}
-
-# IAM Policy para logs básicos
-resource "aws_iam_role_policy_attachment" "lambda_auth_basic" {
-  role       = aws_iam_role.lambda_auth_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-# IAM Policy para VPC access (se necessário)
-resource "aws_iam_role_policy_attachment" "lambda_vpc_access" {
-  count      = var.database_host != "" ? 1 : 0
-  role       = aws_iam_role.lambda_auth_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-}
-
-# IAM Policy específica para RDS access
-resource "aws_iam_role_policy" "lambda_rds_policy" {
-  name = "fast-food-lambda-rds-policy"
-  role = aws_iam_role.lambda_auth_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "rds:DescribeDBInstances",
-          "rds:DescribeDBClusters"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
+# Data source para usar a LabRole existente
+data "aws_iam_role" "lab_role" {
+  name = "LabRole"
 }
 
 # ===========================
@@ -91,7 +39,7 @@ resource "aws_iam_role_policy" "lambda_rds_policy" {
 
 resource "aws_lambda_function" "auth_lambda" {
   function_name = var.lambda_function_name
-  role         = aws_iam_role.lambda_auth_role.arn
+  role         = data.aws_iam_role.lab_role.arn
   handler      = var.lambda_handler
   runtime      = var.lambda_runtime
   timeout      = var.lambda_timeout
