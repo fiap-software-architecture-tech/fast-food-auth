@@ -85,26 +85,42 @@ jobs:
             --zip-file fileb://lambda-deployment.zip \
             --region ${{ env.AWS_REGION }}
 
+      - name: Get RDS Endpoint
+        id: rds_endpoint
+        run: |
+          echo "🔍 Obtendo endpoint do RDS..."
+          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier fastfood-db --query 'DBInstances[0].Endpoint.Address' --output text 2>/dev/null || echo "")
+          
+          if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" = "None" ]; then
+            echo "⚠️ RDS não encontrado. Usando endpoint padrão para desenvolvimento."
+            RDS_ENDPOINT="localhost"
+          fi
+          
+          echo "✅ RDS Endpoint: $RDS_ENDPOINT"
+          echo "rds_endpoint=$RDS_ENDPOINT" >> $GITHUB_OUTPUT
+
       - name: Update environment variables
         run: |
-          RDS_ENDPOINT=$(aws rds describe-db-instances \
-            --db-instance-identifier fastfood-db \
-            --query 'DBInstances[0].Endpoint.Address' \
-            --output text 2>/dev/null || echo "")
+          RDS_HOST="${{ steps.rds_endpoint.outputs.rds_endpoint }}"
+          JWT_SECRET_VAL="${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}"
+          NODE_ENV_VAL="${{ github.event.inputs.environment || 'production' }}"
 
-          if [ -n "$RDS_ENDPOINT" ]; then
-            DATABASE_URL="mysql://admin:admin123@${RDS_ENDPOINT}:3306/fastfood?allowPublicKeyRetrieval=true"
-
+          if [ -n "$RDS_HOST" ]; then
             # Criar arquivo JSON temporário para evitar problemas com aspas
-            cat > env_vars.json << EOF
+            cat > env_vars.json << 'EOF'
             {
               "Variables": {
-                "DATABASE_URL": "$DATABASE_URL",
-                "JWT_SECRET": "${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}",
-                "NODE_ENV": "${{ github.event.inputs.environment || 'production' }}"
+                "DATABASE_URL": "mysql://admin:admin123@RDS_HOST_PLACEHOLDER:3306/fastfood?allowPublicKeyRetrieval=true",
+                "JWT_SECRET": "JWT_SECRET_PLACEHOLDER",
+                "NODE_ENV": "NODE_ENV_PLACEHOLDER"
               }
             }
             EOF
+            
+            # Substituir os placeholders pelos valores reais
+            sed -i "s|RDS_HOST_PLACEHOLDER|$RDS_HOST|g" env_vars.json
+            sed -i "s|JWT_SECRET_PLACEHOLDER|$JWT_SECRET_VAL|g" env_vars.json
+            sed -i "s|NODE_ENV_PLACEHOLDER|$NODE_ENV_VAL|g" env_vars.json
             
             # Atualizar a função Lambda usando o arquivo JSON
             aws lambda update-function-configuration \
