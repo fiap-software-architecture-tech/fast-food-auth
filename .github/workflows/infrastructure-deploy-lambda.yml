@@ -78,6 +78,14 @@ jobs:
             -var="lambda_filename=../lambda-deployment.zip" \
             -var="environment=${{ github.event.inputs.environment || 'production' }}"
 
+      - name: Get Database Endpoint from Terraform
+        id: terraform_outputs
+        working-directory: terraform
+        run: |
+          DB_ENDPOINT=$(terraform output -raw database_endpoint)
+          echo "database_endpoint=$DB_ENDPOINT" >> $GITHUB_OUTPUT
+          echo "✅ Database Endpoint from Terraform: $DB_ENDPOINT"
+
       - name: Update Lambda function code
         run: |
           aws lambda update-function-code \
@@ -85,55 +93,28 @@ jobs:
             --zip-file fileb://lambda-deployment.zip \
             --region ${{ env.AWS_REGION }}
 
-      - name: Get RDS Endpoint
-        id: rds_endpoint
-        run: |
-          echo "🔍 Obtendo endpoint do RDS..."
-          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier fastfood-db --query 'DBInstances[0].Endpoint.Address' --output text 2>/dev/null || echo "")
-          
-          if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" = "None" ]; then
-            echo "⚠️ RDS não encontrado. Usando endpoint padrão para desenvolvimento."
-            RDS_ENDPOINT="localhost"
-          fi
-          
-          echo "✅ RDS Endpoint: $RDS_ENDPOINT"
-          echo "rds_endpoint=$RDS_ENDPOINT" >> $GITHUB_OUTPUT
-
       - name: Update environment variables
         run: |
-          RDS_HOST="${{ steps.rds_endpoint.outputs.rds_endpoint }}"
-          JWT_SECRET_VAL="${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}"
-          NODE_ENV_VAL="${{ github.event.inputs.environment || 'production' }}"
+          DB_HOST="${{ steps.terraform_outputs.outputs.database_endpoint }}"
+          DATABASE_URL="mysql://admin:admin123@${DB_HOST}:3306/fastfood?allowPublicKeyRetrieval=true"
+          
+          aws lambda update-function-configuration \
+            --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+            --environment Variables="{DATABASE_URL=${DATABASE_URL},JWT_SECRET=${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }},NODE_ENV=${{ github.event.inputs.environment || 'production' }}}" \
+            --region ${{ env.AWS_REGION }}
 
-          if [ -n "$RDS_HOST" ]; then
-            # Criar arquivo JSON temporário para evitar problemas com aspas
-            cat > env_vars.json << 'EOF'
-            {
-              "Variables": {
-                "DATABASE_URL": "mysql://admin:admin123@RDS_HOST_PLACEHOLDER:3306/fastfood?allowPublicKeyRetrieval=true",
-                "JWT_SECRET": "JWT_SECRET_PLACEHOLDER",
-                "NODE_ENV": "NODE_ENV_PLACEHOLDER"
-              }
-            }
-            EOF
-            
-            # Substituir os placeholders pelos valores reais
-            sed -i "s|RDS_HOST_PLACEHOLDER|$RDS_HOST|g" env_vars.json
-            sed -i "s|JWT_SECRET_PLACEHOLDER|$JWT_SECRET_VAL|g" env_vars.json
-            sed -i "s|NODE_ENV_PLACEHOLDER|$NODE_ENV_VAL|g" env_vars.json
-            
-            # Atualizar a função Lambda usando o arquivo JSON
-            aws lambda update-function-configuration \
-              --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
-              --environment file://env_vars.json \
-              --region ${{ env.AWS_REGION }}
-
-            echo "✅ Variáveis de ambiente configuradas!"
-          fi
+          echo "✅ Variáveis de ambiente configuradas com DB: $DB_HOST"
 
       - name: Validate deployment
         run: |
+          echo "🧪 Testando função Lambda..."
           aws lambda invoke \
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
             --payload '{"httpMethod":"GET","path":"/health"}' \
+            --cli-binary-format raw-in-base64-out \
             response.json || true
+          
+          echo "📄 Resposta da Lambda:"
+          cat response.json || echo "Sem resposta"
+          
+          echo "✅ Deploy concluído!"
