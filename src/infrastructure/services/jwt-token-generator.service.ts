@@ -1,16 +1,24 @@
 import jwt from 'jsonwebtoken';
 
-import { Client } from '#/domain/entities/client.entity';
 import { ITokenGeneratorService, TokenResult } from '#/domain/services/token-generator.service';
 import { env } from '#/infrastructure/config/env';
+
+const TIME_UNITS = {
+    s: 1000,
+    m: 60 * 1000,
+    h: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+} as const;
+
+const DEFAULT_EXPIRATION_MS = 3600 * 1000;
 
 export class JwtTokenGeneratorService implements ITokenGeneratorService {
     private readonly secret = env.JWT_SECRET ?? 'default_secret';
     private readonly expiresIn = '1h';
 
-    sign(payload: Client): TokenResult {
+    sign(cpf: string): TokenResult {
         try {
-            const token = jwt.sign({ ...payload }, this.secret, { expiresIn: this.expiresIn });
+            const token = jwt.sign({ cpf }, this.secret, { expiresIn: this.expiresIn });
             const expiresIn = new Date(Date.now() + this.parseExpiresIn(this.expiresIn)).toISOString();
 
             return { token, expiresIn };
@@ -22,22 +30,14 @@ export class JwtTokenGeneratorService implements ITokenGeneratorService {
 
     private parseExpiresIn(expiresIn: string): number {
         const match = expiresIn.match(/^(\d+)([smhd])$/);
-        if (!match) return 3600 * 1000;
+
+        if (!match) {
+            return DEFAULT_EXPIRATION_MS;
+        }
 
         const value = parseInt(match[1], 10);
-        const unit = match[2];
+        const unit = match[2] as keyof typeof TIME_UNITS;
 
-        switch (unit) {
-            case 's':
-                return value * 1000;
-            case 'm':
-                return value * 60 * 1000;
-            case 'h':
-                return value * 60 * 60 * 1000;
-            case 'd':
-                return value * 24 * 60 * 60 * 1000;
-            default:
-                return 3600 * 1000;
-        }
+        return value * (TIME_UNITS[unit] ?? DEFAULT_EXPIRATION_MS);
     }
 }

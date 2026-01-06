@@ -1,10 +1,6 @@
-import { AuthDto } from '#/application/use-cases/auth/auth.dto';
-
-export interface AuthOutput {
-    token: string;
-    expiresIn: string;
-}
+import { AuthRequest } from '#/interfaces/http/schemas/auth/auth-request.schema';
+import { AuthResponse } from '#/interfaces/http/schemas/auth/auth-response.schema';
 
 export interface IAuthUseCase {
-    execute(request: AuthDto): Promise<AuthOutput>;
+    execute(request: AuthRequest): AuthResponse;
 }
