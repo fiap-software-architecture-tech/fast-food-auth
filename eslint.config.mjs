@@ -82,6 +82,6 @@ export default [
         },
     },
     {
-        ignores: ['jest.config.js', 'node_modules', 'tsup.config.ts', 'eslint.config.mjs'],
+        ignores: ['vitest.config.ts', 'node_modules', 'tsup.config.ts', 'eslint.config.mjs'],
     },
 ];
