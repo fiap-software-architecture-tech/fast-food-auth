@@ -56,8 +56,6 @@ resource "aws_lambda_function" "auth_lambda" {
     }
   }
 
-  depends_on = [aws_iam_role_policy_attachment.lambda_auth_basic]
-
   tags = {
     Environment = var.environment
     ManagedBy   = "terraform"
