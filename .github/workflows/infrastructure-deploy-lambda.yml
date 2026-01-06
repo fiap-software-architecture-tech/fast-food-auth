@@ -55,7 +55,6 @@ jobs:
       - name: Install dependencies and build
         run: |
           npm ci
-          npm run prisma:generate
           npm run build
 
       - name: Create deployment package
