@@ -10,6 +10,7 @@ export default defineConfig({
     alias: resolveAliases,
   },
   test: {
+    root: path.resolve(__dirname, 'src'),
     coverage: {
       exclude: ['**/*-mock*'],
       thresholds: {

@@ -82,7 +82,7 @@ export default [
                 },
             }],
             'prettier/prettier': 'error',
+            ignores: ['vitest.config.ts', 'dist', 'docs', 'node_modules', 'eslint.config.mjs'],
         },
-        ignores: ['vitest.config.ts', 'dist', 'docs', 'node_modules', 'eslint.config.mjs'],
     },
 ];
