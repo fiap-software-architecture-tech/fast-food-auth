@@ -12,8 +12,8 @@ terraform {
   required_version = ">= 1.0"
 
   backend "s3" {
-    bucket = "fastfood-terraform-state-bucket"
-    key    = "lambda/terraform.tfstate"
+    bucket = "fastfood-terraform-state-bucket-3198"
+    key    = "auth/terraform.tfstate"
     region = "us-east-1"
   }
 }

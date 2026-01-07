@@ -69,11 +69,6 @@ show_step "Instalando dependências..."
 npm ci
 show_success "Dependências instaladas"
 
-# Gerar Prisma Client
-show_step "Gerando Prisma Client..."
-npm run prisma:generate
-show_success "Prisma Client gerado"
-
 # Build da aplicação
 show_step "Executando build da aplicação..."
 npm run build
@@ -143,7 +138,7 @@ else
 fi
 
 # Verificar se as dependências essenciais estão presentes
-REQUIRED_DEPS=("@fastify/aws-lambda" "@prisma/client" "fastify" "jsonwebtoken")
+REQUIRED_DEPS=("@fastify/aws-lambda" "fastify" "jsonwebtoken")
 for dep in "${REQUIRED_DEPS[@]}"; do
     if unzip -l lambda-deployment.zip | grep -q "node_modules/$dep/"; then
         show_success "$dep encontrado"
