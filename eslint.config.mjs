@@ -30,58 +30,59 @@ export default [
             },
         },
         rules: {
-            'semi-style': 'error',
+            'semi-style': ['error'],
             'no-octal-escape': 'error',
-            quotes: ['error', 'single', { allowTemplateLiterals: true }],
+            quotes: ['error', 'single', {
+                allowTemplateLiterals: true,
+            }],
             'object-shorthand': 'off',
-            'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
-            'max-classes-per-file': 'off',
+            'func-style': ['error', 'declaration', {
+                allowArrowFunctions: true,
+            }],
             'no-var': 'off',
+            'no-undef': 'off',
             'prefer-const': 'off',
             'no-useless-escape': 'off',
+            'max-classes-per-file': 'off',
+            '@typescript-eslint/unbound-method': 'off',
+            'eslint-disable prefer-rest-params': 'off',
             '@typescript-eslint/no-unsafe-call': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
             '@typescript-eslint/no-inferrable-types': 'off',
-            '@typescript-eslint/no-floating-promises': 'off',
             '@typescript-eslint/no-unsafe-assignment': 'off',
-            "@typescript-eslint/no-unsafe-member-access": 'off',
+            '@typescript-eslint/restrict-template-expressions': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
             '@typescript-eslint/explicit-module-boundary-types': 'off',
-            '@typescript-eslint/no-unused-vars': [
-                'error',
-                {
-                    vars: 'all',
-                    args: 'after-used',
-                    ignoreRestSiblings: false,
-                    argsIgnorePattern: '^_',
-                },
-            ],
+            '@typescript-eslint/no-unused-vars': ['error', {
+                vars: 'all',
+                args: 'after-used',
+                ignoreRestSiblings: false,
+                argsIgnorePattern: '^_',
+            }],
             'import/prefer-default-export': 'off',
-            'import/order': [
-                'error',
-                {
-                    pathGroups: [
-                        { pattern: '#/**', group: 'internal' },
-                        { pattern: '!/**', group: 'parent' },
-                    ],
-                    groups: ['builtin', 'external', 'internal', 'parent', 'index', 'sibling'],
-                    'newlines-between': 'always',
-                    alphabetize: {
-                        order: 'asc',
-                        caseInsensitive: true,
-                    },
+            'no-restricted-imports': ['error', {
+                patterns: ['./*', '../*'],
+            }],
+            'import/order': ['error', {
+                pathGroups: [{
+                    pattern: '#/**',
+                    group: 'internal',
+                }, {
+                    pattern: '!/**',
+                    group: 'parent',
+                }],
+                groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+                'newlines-between': 'always',
+                alphabetize: {
+                    order: 'asc',
+                    caseInsensitive: true,
                 },
-            ],
-            'no-restricted-imports': [
-                'error',
-                {
-                    patterns: ['./*', '../*'],
-                },
-            ],
+            }],
             'prettier/prettier': 'error',
         },
-    },
-    {
-        ignores: ['vitest.config.ts', 'node_modules', 'tsup.config.ts', 'eslint.config.mjs'],
-    },
+        ignores: ['vitest.config.ts', 'dist', 'docs', 'node_modules', 'eslint.config.mjs'],
+    }
 ];

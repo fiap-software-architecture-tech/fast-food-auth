@@ -1,19 +1,15 @@
-import {
-    authValidator,
-    authResponseSchema,
-    errorResponseValidationSchema,
-    errorUnauthorizedSchema,
-} from '#/interfaces/http/schemas/auth/auth.schema';
+import { authRequestSchema } from '#/interfaces/http/schemas/auth/auth-request.schema';
+import { authResponseSchema } from '#/interfaces/http/schemas/auth/auth-response.schema';
+import { badRequestSchema } from '#/interfaces/http/schemas/common/error.schema';
 
 export const authSchema = {
     schema: {
-        tags: ['Autenticação'],
-        summary: 'Autentica cliente pelo CPF',
-        body: authValidator,
+        tags: ['Auth'],
+        summary: 'Autenticação de cliente',
+        body: authRequestSchema,
         response: {
             200: authResponseSchema,
-            401: errorUnauthorizedSchema,
-            400: errorResponseValidationSchema,
+            400: badRequestSchema,
         },
     },
 };

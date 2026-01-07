@@ -1,12 +1,8 @@
-import { AuthResponseDTO } from '#/interfaces/presenter/auth/auth-response.dto';
-
-interface ValidateCustomerResponse {
-    token: string;
-    expiresIn: string;
-}
+import { TokenResult } from '#/domain/services/token-generator.service';
+import { AuthResponse } from '#/interfaces/http/schemas/auth/auth-response.schema';
 
 export class AuthPresenter {
-    static toDTO(data: ValidateCustomerResponse): AuthResponseDTO {
+    static toHTTP(data: TokenResult): AuthResponse {
         return {
             token: data.token,
             expiresIn: data.expiresIn,

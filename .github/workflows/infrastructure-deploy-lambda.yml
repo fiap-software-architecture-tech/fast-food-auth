@@ -55,7 +55,6 @@ jobs:
       - name: Install dependencies and build
         run: |
           npm ci
-          npm run prisma:generate
           npm run build
 
       - name: Create deployment package
@@ -79,36 +78,50 @@ jobs:
             -var="lambda_filename=../lambda-deployment.zip" \
             -var="environment=${{ github.event.inputs.environment || 'production' }}"
 
+      - name: Get Database Endpoint from Terraform
+        id: terraform_outputs
+        working-directory: terraform
+        run: |
+          DB_ENDPOINT=$(terraform output -raw database_endpoint)
+          echo "database_endpoint=$DB_ENDPOINT" >> $GITHUB_OUTPUT
+          echo "✅ Database Endpoint from Terraform: $DB_ENDPOINT"
+
       - name: Update Lambda function code
         run: |
           aws lambda update-function-code \
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
             --zip-file fileb://lambda-deployment.zip \
             --region ${{ env.AWS_REGION }}
+          
+          echo "⏳ Aguardando função Lambda ficar disponível..."
+          aws lambda wait function-updated \
+            --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+            --region ${{ env.AWS_REGION }}
+          
+          echo "✅ Função Lambda atualizada e pronta!"
 
       - name: Update environment variables
         run: |
-          RDS_ENDPOINT=$(aws rds describe-db-instances \
-            --db-instance-identifier fastfood-db \
-            --query 'DBInstances[0].Endpoint.Address' \
-            --output text 2>/dev/null || echo "")
+          DB_HOST="${{ steps.terraform_outputs.outputs.database_endpoint }}"
+          DATABASE_URL="mysql://admin:admin123@${DB_HOST}/fastfood?allowPublicKeyRetrieval=true"
+          
+          aws lambda update-function-configuration \
+            --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+            --environment Variables="{DATABASE_URL=${DATABASE_URL},JWT_SECRET=${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }},NODE_ENV=${{ github.event.inputs.environment || 'production' }}}" \
+            --region ${{ env.AWS_REGION }}
 
-          if [ -n "$RDS_ENDPOINT" ]; then
-            DATABASE_URL="mysql://admin:admin123@${RDS_ENDPOINT}:3306/fastfood?allowPublicKeyRetrieval=true"
-
-            aws lambda update-function-configuration \
-              --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
-              --environment Variables="{
-                \"DATABASE_URL\":\"$DATABASE_URL\",
-                \"JWT_SECRET\":\"${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }}\",
-                \"NODE_ENV\":\"${{ github.event.inputs.environment || 'production' }}\"
-              }" \
-              --region ${{ env.AWS_REGION }}
-          fi
+          echo "✅ Variáveis de ambiente configuradas com DB: $DB_HOST"
 
       - name: Validate deployment
         run: |
+          echo "🧪 Testando função Lambda..."
           aws lambda invoke \
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
             --payload '{"httpMethod":"GET","path":"/health"}' \
+            --cli-binary-format raw-in-base64-out \
             response.json || true
+          
+          echo "📄 Resposta da Lambda:"
+          cat response.json || echo "Sem resposta"
+          
+          echo "✅ Deploy concluído!"
