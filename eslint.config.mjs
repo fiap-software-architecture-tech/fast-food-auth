@@ -85,6 +85,6 @@ export default [
         },
     },
     {
-        ignores: ['dist', 'docs', 'node_modules', 'eslint.config.mjs'],
-    }
+        ignores: ['vitest.config.ts', 'node_modules', 'tsup.config.ts', 'eslint.config.mjs'],
+    },
 ];
