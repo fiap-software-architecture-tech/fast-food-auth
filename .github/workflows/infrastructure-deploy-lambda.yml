@@ -2,7 +2,7 @@ name: Infrastructure - Deploy Lambda
 
 on:
   push:
-    branches: [ modulo_3 ]
+    branches: [ modulo_4 ]
     paths:
       - 'terraform/**'
       - 'src/**'
@@ -92,19 +92,19 @@ jobs:
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
             --zip-file fileb://lambda-deployment.zip \
             --region ${{ env.AWS_REGION }}
-          
+
           echo "⏳ Aguardando função Lambda ficar disponível..."
           aws lambda wait function-updated \
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
             --region ${{ env.AWS_REGION }}
-          
+
           echo "✅ Função Lambda atualizada e pronta!"
 
       - name: Update environment variables
         run: |
           DB_HOST="${{ steps.terraform_outputs.outputs.database_endpoint }}"
           DATABASE_URL="mysql://admin:admin123@${DB_HOST}/fastfood?allowPublicKeyRetrieval=true"
-          
+
           aws lambda update-function-configuration \
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
             --environment Variables="{DATABASE_URL=${DATABASE_URL},JWT_SECRET=${{ secrets.JWT_SECRET || 'fast-food-secret-key-2024' }},NODE_ENV=${{ github.event.inputs.environment || 'production' }}}" \
@@ -120,8 +120,8 @@ jobs:
             --payload '{"httpMethod":"GET","path":"/health"}' \
             --cli-binary-format raw-in-base64-out \
             response.json || true
-          
+
           echo "📄 Resposta da Lambda:"
           cat response.json || echo "Sem resposta"
-          
+
           echo "✅ Deploy concluído!"
