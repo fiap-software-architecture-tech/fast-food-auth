@@ -14,7 +14,6 @@ pids
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
-coverage/
 *.lcov
 
 # nyc test coverage
@@ -151,7 +150,6 @@ temp_build/
 *.temp
 
 # Test files
-coverage/
 *.test.js
 *.spec.js
 
