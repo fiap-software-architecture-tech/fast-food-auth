@@ -180,6 +180,8 @@ Os testes cobrem:
 - ✅ Integração com banco de dados
 - ✅ Controllers e rotas
 
+O coverage dos testes está disponível em [index.html](./coverage/index.html).
+
 ## 📡 API Endpoint
 
 ### POST /auth
