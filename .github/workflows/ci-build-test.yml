@@ -134,14 +134,3 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** `${{ github.ref_name }}`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** `${{ github.sha }}`" >> $GITHUB_STEP_SUMMARY
-  sonarqube:
-    name: SonarQube
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
